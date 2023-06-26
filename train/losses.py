@@ -1,6 +1,6 @@
 import torch
 from torch.nn import functional as F
-
+import time
 
 def feature_loss(fmap_r, fmap_g):
     loss = 0
@@ -17,16 +17,23 @@ def discriminator_loss(disc_real_outputs, disc_generated_outputs):
     loss = 0
     r_losses = []
     g_losses = []
+
+    total = 0
+    correct = 0
+  
     for dr, dg in zip(disc_real_outputs, disc_generated_outputs):
         dr = dr.float()
         dg = dg.float()
+       
+        correct += (dr>=0.5).sum().item() + (dg<0.5).sum().item()
+        total += dr.numel() + dg.numel()
+
         r_loss = torch.mean((1 - dr) ** 2)
         g_loss = torch.mean(dg**2)
         loss += r_loss + g_loss
         r_losses.append(r_loss.item())
         g_losses.append(g_loss.item())
-
-    return loss, r_losses, g_losses
+    return loss, r_losses, g_losses, correct / float(total)
 
 
 def generator_loss(disc_outputs):

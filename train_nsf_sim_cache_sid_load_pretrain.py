@@ -429,7 +429,7 @@ def train_and_evaluate(
             # Discriminator
             y_d_hat_r, y_d_hat_g, _, _ = net_d(wave, y_hat.detach())
             with autocast(enabled=False):
-                loss_disc, losses_disc_r, losses_disc_g = discriminator_loss(
+                loss_disc, losses_disc_r, losses_disc_g, disc_accuracy = discriminator_loss(
                     y_d_hat_r, y_d_hat_g
                 )
         optim_d.zero_grad()
@@ -478,6 +478,7 @@ def train_and_evaluate(
                     "learning_rate": lr,
                     "grad_norm_d": grad_norm_d,
                     "grad_norm_g": grad_norm_g,
+                    "disc_accuracy": disc_accuracy,
                 }
                 scalar_dict.update(
                     {

@@ -1617,7 +1617,7 @@ def get_presets():
     
     return preset_names
 
-with gr.Blocks(theme=gr.themes.Soft()) as app:
+with gr.Blocks() as app:
     gr.HTML("<h1> The Mangio-RVC-Fork 💻 </h1>")
     gr.Markdown(
         value=i18n(
