@@ -153,6 +153,7 @@ def run(rank, n_gpus, hps):
     net_d = MultiPeriodDiscriminator(hps.model.use_spectral_norm)
     if torch.cuda.is_available():
         net_d = net_d.cuda(rank)
+    
     optim_g = torch.optim.AdamW(
         net_g.parameters(),
         hps.train.learning_rate,
@@ -165,6 +166,20 @@ def run(rank, n_gpus, hps):
         betas=hps.train.betas,
         eps=hps.train.eps,
     )
+
+    #optim_g = torch.optim.SGD(
+    #    net_g.parameters(),
+    #    hps.train.learning_rate * .1,
+    #    0.05,
+    #    nesterov = True
+    #)
+    #optim_d = torch.optim.SGD(
+    #    net_d.parameters(),
+    #    hps.train.learning_rate * .1,
+    #    0.05,
+    #    nesterov = True
+    #)
+
     # net_g = DDP(net_g, device_ids=[rank], find_unused_parameters=True)
     # net_d = DDP(net_d, device_ids=[rank], find_unused_parameters=True)
     if torch.cuda.is_available():
@@ -208,13 +223,27 @@ def run(rank, n_gpus, hps):
                 )
             )
 
-    scheduler_g = torch.optim.lr_scheduler.ExponentialLR(
-        optim_g, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2
-    )
-    scheduler_d = torch.optim.lr_scheduler.ExponentialLR(
-        optim_d, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2
-    )
+    #scheduler_g = torch.optim.lr_scheduler.ExponentialLR(
+    #    optim_g, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2
+    #)
+    #scheduler_d = torch.optim.lr_scheduler.ExponentialLR(
+    #    optim_d, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2
+    #)
 
+    #scheduler_g = torch.optim.lr_scheduler.CyclicLR(
+    #    optim_g,  hps.train.learning_rate * .025,  hps.train.learning_rate * .175, gamma=hps.train.lr_decay, step_size_up = 15, cycle_momentum = False, base_momentum = 0.05, last_epoch=epoch_str - 2
+    #)
+    #scheduler_d = torch.optim.lr_scheduler.CyclicLR(
+    #    optim_d,  hps.train.learning_rate * .025,  hps.train.learning_rate * .175, gamma=hps.train.lr_decay, step_size_up = 15, cycle_momentum = False, base_momentum = 0.05, last_epoch=epoch_str - 2
+    #)
+    #batch_idx / len(train_loader)
+    scheduler_g = torch.optim.lr_scheduler.CyclicLR(
+        optim_g,  hps.train.learning_rate * .25,  hps.train.learning_rate * 1.75, gamma=hps.train.lr_decay, step_size_up = 5, cycle_momentum = False, last_epoch=epoch_str - 2
+    )
+    scheduler_d = torch.optim.lr_scheduler.CyclicLR(
+        optim_d,  hps.train.learning_rate * .25,  hps.train.learning_rate * 1.75, gamma=hps.train.lr_decay, step_size_up = 5, cycle_momentum = False, last_epoch=epoch_str - 2
+    )
+   
     scaler = GradScaler(enabled=hps.train.fp16_run)
 
     cache = []
